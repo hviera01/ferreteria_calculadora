@@ -417,20 +417,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  'Se redondea hacia arriba porque se vende por pieza.',
+                                  'Data by Mr Elison',
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     color: cs.onSurfaceVariant,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
-                                Text(
-                                  'Si usás ft², internamente se convierte a m².',
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
+                                
                               ],
                             ),
                           ),

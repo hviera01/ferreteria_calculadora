@@ -54,12 +54,12 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _ft2ToM2 = 0.09290304;
 
   static const ceramicaOptions = <OptionItem>[
-    OptionItem('Cerámica 1.20 × 0.60', 1.39),
-    OptionItem('Cerámica 0.45 × 0.45', 4.94),
-    OptionItem('Azulejo 0.25 × 0.33', 12.0),
-    OptionItem('Cerámica 0.33 × 0.33', 9.0),
-    OptionItem('Cerámica 0.29 × 0.495', 7.58),
-    OptionItem('Cerámica 0.20 × 0.60', 8.33),
+    OptionItem('Cerámica 1.20 × 60', 1.39),
+    OptionItem('Cerámica 45 × 45', 4.94),
+    OptionItem('Azulejo 25 × 33', 12.0),
+    OptionItem('Cerámica 33 × 33', 9.0),
+    OptionItem('Cerámica 29 × 49.5', 7.58),
+    OptionItem('Cerámica 20 × 60', 8.33),
   ];
 
   static const cieloFalsoOptions = <OptionItem>[

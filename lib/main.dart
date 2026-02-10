@@ -11,7 +11,14 @@ enum CalcCategory { ceramica, porcelanato, cieloFalso }
 class OptionItem {
   final String label;
   final double piezasPorM2;
-  const OptionItem(this.label, this.piezasPorM2);
+  final int? piezasPorCaja;
+  final double? m2PorCaja;
+  const OptionItem(
+    this.label,
+    this.piezasPorM2, {
+    this.piezasPorCaja,
+    this.m2PorCaja,
+  });
 }
 
 class ShortcutItem {
@@ -51,7 +58,7 @@ class FerreteriaCalcApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ferretería',
+      title: 'Ferretería Santa Fe',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -127,17 +134,20 @@ class _CalculadorasScreenState extends State<CalculadorasScreen> {
   static const _ft2ToM2 = 0.09290304;
 
   static const ceramicaOptions = <OptionItem>[
-    OptionItem('Cerámica 1.20 × 0.60', 1.39),
-    OptionItem('Cerámica 45 × 45', 4.94),
-    OptionItem('Azulejo 25 × 33', 12.0),
-    OptionItem('Cerámica 33 × 33', 9.0),
-    OptionItem('Cerámica 29 × 49.5', 7.58),
-    OptionItem('Cerámica 20 × 60', 8.33),
+    OptionItem('Azulejo 25 × 33', 12.0, piezasPorCaja: 18, m2PorCaja: 1.5),
+    OptionItem('Cerámica 33 × 33', 9.0, piezasPorCaja: 12, m2PorCaja: 1.33),
+    OptionItem('Cerámica 45 × 45', 4.94, piezasPorCaja: 7, m2PorCaja: 1.41),
+    OptionItem('Cerámica 20 × 60', 8.33, piezasPorCaja: 9, m2PorCaja: 1.08),
+    OptionItem('Cerámica 60 × 60', 2.77, piezasPorCaja: 4, m2PorCaja: 1.44),
+    OptionItem('Cerámica 29 × 49.5', 7.58, piezasPorCaja: 11, m2PorCaja: 1.45),
+    OptionItem('Cerámica Unicesa 33 × 33', 9.0, piezasPorCaja: 18, m2PorCaja: 2.0),
   ];
 
   static const porcelanatoOptions = <OptionItem>[
-    OptionItem('Porcelanato 60 × 120', 1.39),
-    OptionItem('Porcelanato 60 × 60', 2.77),
+    OptionItem('Porcelanato 60 × 60', 2.77, piezasPorCaja: 4),
+    OptionItem('Porcelanato 60 × 120', 1.39, piezasPorCaja: 2),
+    OptionItem('Porcelanato 20 × 120', 4.16, piezasPorCaja: 5),
+    OptionItem('Porcelanato 1.20 × 1.80', 0.46),
   ];
 
   static const cieloFalsoOptions = <OptionItem>[
@@ -253,9 +263,17 @@ class _CalculadorasScreenState extends State<CalculadorasScreen> {
     }
   }
 
+  String fmtCaja(double v) {
+    final s = v.toStringAsFixed(2);
+    if (s.endsWith('00')) return v.toStringAsFixed(0);
+    if (s.endsWith('0')) return v.toStringAsFixed(1);
+    return s;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final opt = selected;
 
     return Scaffold(
       appBar: AppBar(
@@ -289,14 +307,20 @@ class _CalculadorasScreenState extends State<CalculadorasScreen> {
                           ),
                           child: Row(
                             children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: cs.primary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(14),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  width: 52,
+                                  height: 52,
+                                  color: cs.primary.withValues(alpha: 0.10),
+                                  child: Image.asset(
+                                    'assets/logo.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stack) {
+                                      return Icon(Icons.store_rounded, color: cs.primary, size: 28);
+                                    },
+                                  ),
                                 ),
-                                child: Icon(Icons.construction_rounded, color: cs.primary),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -304,7 +328,7 @@ class _CalculadorasScreenState extends State<CalculadorasScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Calculadora Ferretería',
+                                      'Ferretería Santa Fe',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800,
@@ -498,8 +522,18 @@ class _CalculadorasScreenState extends State<CalculadorasScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 _ResultRow(
-                                  title: 'Factor (piezas por 1 m²)',
-                                  value: selected == null ? '—' : fmt2(selected!.piezasPorM2),
+                                  title: 'Piezas por 1 m²',
+                                  value: opt == null ? '—' : fmt2(opt.piezasPorM2),
+                                ),
+                                const SizedBox(height: 8),
+                                _ResultRow(
+                                  title: 'Piezas por caja',
+                                  value: opt?.piezasPorCaja == null ? '—' : '${opt!.piezasPorCaja}',
+                                ),
+                                const SizedBox(height: 8),
+                                _ResultRow(
+                                  title: 'm² por caja',
+                                  value: opt?.m2PorCaja == null ? '—' : fmtCaja(opt!.m2PorCaja!),
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
@@ -523,7 +557,7 @@ class _CalculadorasScreenState extends State<CalculadorasScreen> {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          'Ferretería • Cálculo rápido',
+                          'Ferretería Santa Fe',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
@@ -602,13 +636,80 @@ class _AtajosScreenState extends State<AtajosScreen> {
 
   static const items = <ShortcutItem>[
     ShortcutItem(
-      titulo: 'Aluzinc',
-      alias: ['aluzinc', 'lamina aluzinc', 'zinc', 'aluzinc 26', 'aluzinc 28', 'calibre 26', 'calibre 28', '0.40', '0.35', '0.34', '0.30'],
+      titulo: 'Varilla',
+      alias: [
+        'varilla',
+        'corrugada',
+        'lisa',
+        'entorchada',
+        'roscada',
+        'grado 40',
+        '3/8',
+        '1/2',
+        '5/8',
+        '3/4',
+        '1',
+        '9.5',
+        '13',
+        '15.9',
+        '19.1',
+        '25.4',
+        '12',
+        '8.5',
+        '8.0',
+        '7.5',
+        '7.2',
+        '5.5'
+      ],
       lineas: [
-        ShortcutLine(label: 'Calibre 26 legítimo (0.40)', buscarComo: '0.40'),
-        ShortcutLine(label: 'Calibre 26 intermedio (0.34)', buscarComo: '0.34'),
-        ShortcutLine(label: 'Calibre 26 intermedio (0.35)', buscarComo: '0.35'),
-        ShortcutLine(label: 'Calibre 28 (0.30)', buscarComo: '0.30'),
+        ShortcutLine(
+          label: 'Varilla corrugada legítima',
+          buscarComo: '3/8 (9.5 mm) • 1/2 (13 mm) • 5/8 (15.9 mm) • 3/4 (19.1 mm) • 1" (25.4 mm)',
+        ),
+        ShortcutLine(
+          label: 'Varilla corrugada intermedia',
+          buscarComo: '1/2 (12 mm) • 3/8 (8.5 mm)',
+        ),
+        ShortcutLine(
+          label: 'Varilla corrugada milimétrica',
+          buscarComo: '3/8 (8.0 mm) • 3/8 (7.5 mm) • 3/8 (7.2 mm)',
+        ),
+        ShortcutLine(
+          label: 'Varilla lisa legítima',
+          buscarComo: '5/8" • 3/4" • 1/2" • 3/8" • 1/4" (5.5 mm)',
+        ),
+        ShortcutLine(
+          label: 'Varilla entorchada',
+          buscarComo: '1/2" • 3/8"',
+        ),
+        ShortcutLine(
+          label: 'Varilla roscada (pernos)',
+          buscarComo: '1/2" • 3/8" • 1/4" • 5/16"',
+        ),
+        ShortcutLine(
+          label: 'Grado',
+          buscarComo: 'Grado 40',
+          nota: 'Grado 60 solo por pedido especial.',
+        ),
+      ],
+    ),
+    ShortcutItem(
+      titulo: 'Aluzinc',
+      alias: [
+        'aluzinc',
+        
+      ],
+      lineas: [
+        ShortcutLine(label: 'Calibre 28 (intermedio)', buscarComo: '0.30'),
+        ShortcutLine(label: 'Calibre 26 (legítimo)', buscarComo: '0.40'),
+        ShortcutLine(label: 'Calibre 26 (intermedio)', buscarComo: '0.34'),
+        ShortcutLine(label: 'Calibre 26 (intermedio)', buscarComo: '0.35'),
+        ShortcutLine(label: 'Colores', buscarComo: 'Natural • Rojo • Rojo teja'),
+        ShortcutLine(
+          label: 'Capotes (ofrecer)',
+          buscarComo: 'Capote Natural • Capote Rojo',
+          nota: 'Medida: 8 pies (2.43 m).',
+        ),
         ShortcutLine(
           label: 'Tornillo recomendado',
           buscarComo: '1/4 punta broca / punta fina / madera',
@@ -617,48 +718,135 @@ class _AtajosScreenState extends State<AtajosScreen> {
       ],
     ),
     ShortcutItem(
-      titulo: 'Canaleta',
-      alias: ['canaleta', 'canaleta legitima', 'canaleta intermedia', 'canaleta milimetrica', '1.20', '1.5', '1.10', '1.0', '0.80', '0.90'],
+  titulo: 'Canaleta',
+  alias: ['canaleta', 'canaleta legitima', 'canaleta intermedia', 'canaleta milimetrica', '1.20', '1.5', '1.10', '1.0', '0.80', '0.90'],
+  lineas: [
+    ShortcutLine(
+          label: '2x4 (clasificación)',
+          buscarComo: '0.80 Milimétrica • 0.90 Intermedia • 1.00 Intermedia • 1.10 Intermedia • 1.20 Intermedia • 1.50 Legítima',
+        ),
+        ShortcutLine(
+          label: '2x6 (clasificación)',
+          buscarComo: '1.00 Intermedia • 1.10 Intermedia • 1.20 Intermedia • 1.50 Legítima',
+        ),
+  ],
+),
+
+    ShortcutItem(
+      titulo: 'Tubo estructural',
+      alias: [
+        'tubo estructural',
+        'chapa',
+        'espesor',
+        'color',
+        'negro',
+        'galvanizado',
+        '3/4x3/4',
+        '2x4',
+        '2x6',
+        '4x4',
+        '1x2',
+        '1x1',
+        '2x2'
+      ],
       lineas: [
-        ShortcutLine(label: '1.20 legítima', buscarComo: '1.20'),
-        ShortcutLine(label: '1.50 legítima', buscarComo: '1.5'),
-        ShortcutLine(label: '1.00 intermedia', buscarComo: '1.0'),
-        ShortcutLine(label: '1.10 intermedia', buscarComo: '1.10'),
-        ShortcutLine(label: '0.80 milimétrica', buscarComo: '0.80'),
-        ShortcutLine(label: '0.90 milimétrica', buscarComo: '0.90'),
+        ShortcutLine(label: 'Chapa 20', buscarComo: '1.0 mm', nota: 'Color identificación: Rojo'),
+        ShortcutLine(label: 'Chapa 18', buscarComo: '2.0–1.20 mm', nota: 'Color identificación: Dorado'),
+        ShortcutLine(label: 'Chapa 16', buscarComo: '1.30–1.50 mm', nota: 'Color identificación: Azul / Amarillo'),
+        ShortcutLine(label: 'Chapa 14', buscarComo: '1.80–1.90 mm', nota: 'Color identificación: Verde'),
+        ShortcutLine(
+          label: 'Medidas',
+          buscarComo: '3/4x3/4 • 1x1 • 1 1/4x1 1/4 • 1 1/2x1 1/2 • 2x2 • 3x3 • 2x4 • 4x4 • 1x2',
+        ),
+        
+        ShortcutLine(
+          label: 'Fundiciones',
+          buscarComo: 'Tubo 2x4 y 4x4',
+          nota: 'En estas medidas se ofrece chapa 16 o chapa 14.',
+        ),
       ],
     ),
     ShortcutItem(
-      titulo: 'Varilla',
-      alias: ['varilla', 'varilla 1/4', 'varilla 3/8', 'varilla 1/2', 'corrugada', 'lisa', '5.5', '3/8', '11'],
+      titulo: 'Tubo para cerca / redondo',
+      alias: ['cerca', 'redondo', 'galvanizado', 'chapa 18', 'chapa 16', 'chapa 14', '3 pulgadas'],
       lineas: [
-        ShortcutLine(label: 'Varilla 1/4', buscarComo: '5.5 varilla'),
-        ShortcutLine(
-          label: 'Varilla 3/8',
-          buscarComo: '3/8',
-          nota: 'Hay lisa y corrugada. Intermedia 8.5 a 8.0. Milimétrica 7.5 a 7.2.',
-        ),
-        ShortcutLine(
-          label: 'Varilla 1/2 (intermedia)',
-          buscarComo: '11',
-          nota: 'Hay lisa y corrugada. Corrugada: legítima e intermedia.',
-        ),
+        ShortcutLine(label: 'Chapas', buscarComo: '18 • 16 • 14'),
+        ShortcutLine(label: 'Medidas', buscarComo: '3/4 • 1 • 1 1/4 • 1 1/2 • 2'),
+        ShortcutLine(label: 'Nota', buscarComo: 'Todos los tubos para cerca son galvanizados'),
+        ShortcutLine(label: 'Extra', buscarComo: 'Tubo redondo negro 3"'),
+      ],
+    ),
+    ShortcutItem(
+      titulo: 'Tubo HG (hierro galvanizado)',
+      alias: ['hg', 'hierro galvanizado', 'agua potable', 'rosca', '1/2', '3/4', '1 1/4', '2', '3', '4', '6'],
+      lineas: [
+        ShortcutLine(label: 'Uso', buscarComo: 'Agua potable (rosca en ambos extremos)'),
+        ShortcutLine(label: 'Medidas', buscarComo: '1/2 • 3/4 • 1 • 1 1/4 • 1 1/2 • 2 • 3 • 4'),
+        ShortcutLine(label: 'Por encargo', buscarComo: '6'),
       ],
     ),
     ShortcutItem(
       titulo: 'Tubería PVC',
-      alias: ['pvc', 'tuberia pvc', 'sdr26', 'sdr41', 'sdr64', 'potable', 'inyectado', 'drenaje'],
+      alias: ['pvc', 'sdr26', 'sdr41', 'sdr64', 'potable', 'drenaje', 'dual force', 'alcantarillado'],
       lineas: [
-        ShortcutLine(label: 'SDR26 (potable)', buscarComo: 'SDR26'),
-        ShortcutLine(label: 'SDR41 (inyectado)', buscarComo: 'SDR41'),
-        ShortcutLine(label: 'SDR64 (drenaje)', buscarComo: 'SDR64'),
+        ShortcutLine(
+          label: 'PVC potable (SDR26) – alta presión',
+          buscarComo: '1/2 • 3/4 • 1 • 1 1/4 • 1 1/2 • 2 • 3 • 4 • 6 • 8',
+        ),
+        ShortcutLine(
+          label: 'PVC inyectado (SDR41) – semi presión',
+          buscarComo: '2 • 3 • 4 • 6 • 8',
+          nota: 'Aguas negras.',
+        ),
+        ShortcutLine(
+          label: 'PVC drenaje (SDR64)',
+          buscarComo: '2" • 3" • 4" • 6" • 8"',
+        ),
+        ShortcutLine(
+          label: 'Tubo corrugado alcantarillado (Dual Force)',
+          buscarComo: '10" • 12" • 18" • 24" • 36"',
+        ),
       ],
     ),
     ShortcutItem(
-      titulo: 'Cables',
-      alias: ['cable', 'cables', 'awg', '12awg', 'cable 12', '12 awg'],
+      titulo: 'Accesorios PVC',
+      alias: ['accesorios', 'codo', 'tee', 'camisa', 'tapon', 'trampa', 'reductor', 'yee', 'adaptador'],
       lineas: [
-        ShortcutLine(label: 'Cable 12 AWG', buscarComo: '12awg'),
+        ShortcutLine(
+          label: 'Potable',
+          buscarComo:
+              'Codos 90° y 45° • Tee 1/2 a 6 • Adaptador macho • Adaptador hembra (camisa con rosca) • Camisa o unión • Tapón liso y con rosca • Trampas 2,3,4 • Reductores 3/4 a 1/2 hasta 8 a 6',
+        ),
+        ShortcutLine(
+          label: 'Drenaje',
+          buscarComo:
+              'Codos 2,3,4,6,8 (90° y 45°) • Tee • Camisa lisa • Tapón liso • Trampa • Reductores 3 a 2 • 4 a 3 • 6 a 4 • 8 a 6 • Yee 6 a 4',
+        ),
+      ],
+    ),
+    ShortcutItem(
+      titulo: 'Cerámica (caja / palet)',
+      alias: ['ceramica', 'azulejo', 'caja', 'palet', '25x33', '33x33', '45x45', '20x60', '60x60', '29x49.5', 'unicesa'],
+      lineas: [
+        ShortcutLine(label: 'Azulejo 25x33', buscarComo: '12 pzas/m² • 18 pzas/caja • 1.5 m²/caja'),
+        ShortcutLine(label: 'Cerámica 33x33', buscarComo: '9 pzas/m² • 12 pzas/caja • 1.33 m²/caja'),
+        ShortcutLine(label: 'Cerámica 45x45', buscarComo: '4.94 pzas/m² • 7 pzas/caja • 1.41 m²/caja'),
+        ShortcutLine(label: 'Cerámica 20x60', buscarComo: '8.33 pzas/m² • 9 pzas/caja • 1.08 m²/caja'),
+        ShortcutLine(label: 'Cerámica 60x60', buscarComo: '2.77 pzas/m² • 4 pzas/caja • 1.44 m²/caja'),
+        ShortcutLine(label: 'Cerámica 29x49.5', buscarComo: '7.58 pzas/m² • 11 pzas/caja • 1.45 m²/caja'),
+        ShortcutLine(label: 'Cerámica Unicesa 33x33', buscarComo: '9 pzas/m² • 18 pzas/caja • 2 m²/caja'),
+        ShortcutLine(label: 'Cajas por palet', buscarComo: '25x33: 42 • 33x33: 84 • 45x45: 72 • 60x60: 36'),
+        ShortcutLine(label: 'Cerámica brasileña 45x45', buscarComo: 'Se vende por caja', nota: 'La caja trae 11 piezas.'),
+      ],
+    ),
+    ShortcutItem(
+      titulo: 'Porcelanato (caja)',
+      alias: ['porcelanato', '60x60', '60x120', '20x120', '1.20x1.80', 'caja', 'piezas'],
+      lineas: [
+        ShortcutLine(label: '60x60', buscarComo: '2.77 pzas/m² • 4 pzas/caja'),
+        ShortcutLine(label: '60x120', buscarComo: '1.39 pzas/m² • 2 pzas/caja'),
+        ShortcutLine(label: '20x120', buscarComo: '4.16 pzas/m² • 5 pzas/caja', nota: 'Se vende solo por caja.'),
+        ShortcutLine(label: '1.20x1.80', buscarComo: '0.46 pzas/m²'),
       ],
     ),
     ShortcutItem(
@@ -702,6 +890,13 @@ class _AtajosScreenState extends State<AtajosScreen> {
       alias: ['clavo', 'clavo acero', 'fa', 'clavo lb', 'c/c'],
       lineas: [
         ShortcutLine(label: 'Tipos', buscarComo: 'FA / Clavo lb / C/C'),
+      ],
+    ),
+    ShortcutItem(
+      titulo: 'Cables',
+      alias: ['cable', 'cables', 'awg', '12awg', 'cable 12', '12 awg'],
+      lineas: [
+        ShortcutLine(label: 'Cable 12 AWG', buscarComo: '12awg'),
       ],
     ),
   ];
@@ -760,7 +955,8 @@ class _AtajosScreenState extends State<AtajosScreen> {
                 controller: q,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  labelText: 'Busqueda',
+                  labelText: 'Búsqueda',
+                  hintText: 'Ej: varilla, 0.40, chapa 14, SDR26, 25x33, 2x4...',
                   prefixIcon: const Icon(Icons.search_rounded),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
@@ -831,7 +1027,7 @@ class _AtajosScreenState extends State<AtajosScreen> {
                                                   ),
                                                   const SizedBox(height: 2),
                                                   Text(
-                                                    'Buscar como: ${ln.buscarComo}',
+                                                    ln.buscarComo,
                                                     style: TextStyle(color: cs.onSurfaceVariant),
                                                   ),
                                                   if (ln.nota != null) ...[
